@@ -1,0 +1,13 @@
+# Example snippet for your config/network.hocon
+network_name = "icici_faq_network"
+
+agents {
+  frontman {
+    role = "You are a customer support agent."
+    delegates = ["faq_expert"]
+  }
+  faq_expert {
+    role = "You answer policy questions."
+    tools = ["faq_search_tool"]
+  }
+}

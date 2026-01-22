@@ -1,0 +1,20 @@
+# FAQ Agent Network Configuration
+network_name = "icici_faq_assistant"
+
+agents {
+  # The entry point that talks to the user
+  frontman {
+    role = "You are a professional customer support assistant for ICICI Prulife."
+    goal = "Help users with financial transaction questions using specialized tools."
+    model = "gpt-4o" # or any supported LLM like "ollama/llama3"
+    delegates = ["faq_expert"]
+  }
+
+  # Specialized agent that performs the actual search
+  faq_expert {
+    role = "You are an expert in insurance policy documentation and FAQs."
+    goal = "Answer questions strictly using the faq_search_tool."
+    tools = ["faq_search_tool"]
+    # Allow logic to return to frontman after tool use
+  }
+}

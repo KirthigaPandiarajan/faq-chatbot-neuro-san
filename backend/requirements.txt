@@ -1,0 +1,6 @@
+neuro-san>=0.6.22
+fastapi>=0.100.0
+uvicorn>=0.22.0
+pyhocon>=0.3.61
+langchain-openai>=0.1.0  # For OpenAI support
+# langchain-ollama>=0.1.0 # Uncomment if using Ollama locally
