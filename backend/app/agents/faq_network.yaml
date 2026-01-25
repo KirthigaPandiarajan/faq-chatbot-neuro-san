@@ -1,0 +1,14 @@
+agents:
+  - name: faq_agent
+    type: KnowledgeAgent
+    config:
+      data_path: "./data/faq.json"
+
+  - name: conversation_agent
+    type: ConversationAgent
+    config:
+      max_turns: 5
+
+edges:
+  - from: conversation_agent
+    to: faq_agent

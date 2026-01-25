@@ -1,26 +1,26 @@
 from fastapi import FastAPI
-from neuro_san import AgenticNetwork  # Core class for local orchestration
-from .tools import FAQSearchTool
+from pydantic import BaseModel
+from neuro_san import GraphRunner
 
+# Initialize app
 app = FastAPI()
 
-# Standard 2026 initialization
-# Use register_tools to connect your custom Python logic to the HOCON agents
-network = AgenticNetwork(
-    hocon_path="config/network.hocon",
-    custom_tools={"faq_search_tool": FAQSearchTool()}
-)
+# Load Neuro-SAN graph once at startup
+graph = GraphRunner.from_yaml("faq_network.yml")
 
+# Request model
+class ChatRequest(BaseModel):
+    session_id: str
+    message: str
+    session_histories = {}
 @app.post("/chat")
-async def chat(payload: dict):
-    user_input = payload.get("message")
-    context = payload.get("context", []) # semi-opaque chat history data
-
-    # execute() is the standard method for running a turn in 2026
-    # It returns a response object containing text and the new context
-    response = await network.execute(user_input, chat_context=context)
-
-    return {
-        "reply": response.text,
-        "context": response.chat_context  # This must be sent back in the next API call
-    }
+def chat_endpoint(req: ChatRequest):
+    history = session_histories.get(req.session_id, [])
+    user_msg = req.message
+    
+    # Run through Neuro-SAN
+    result = graph.run(input=user_msg, "history": history)
+    # store new history
+    session_histories[req.session_id] = history + [user_msg, result.get("output_text", "")]
+    
+    return {"reply": result.get("output_text", "")}

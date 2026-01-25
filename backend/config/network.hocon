@@ -1,13 +1,32 @@
-# Example snippet for your config/network.hocon
-network_name = "icici_faq_network"
+network {
+  name = "faq_network"
 
-agents {
-  frontman {
-    role = "You are a customer support agent."
-    delegates = ["faq_expert"]
+  llm {
+    provider = "openai"
+    model = "gpt-4o-mini"
+    temperature = 0.2
   }
-  faq_expert {
-    role = "You answer policy questions."
-    tools = ["faq_search_tool"]
+
+  agents {
+    faq_agent {
+      type = "llm"
+      prompt = """
+      You are a customer support FAQ chatbot.
+
+      Answer strictly using the FAQ data below.
+      If the answer is not present, say "I don't have that information."
+
+      FAQ DATA:
+      {{faq_data}}
+
+      Conversation History:
+      {{history}}
+
+      User Question:
+      {{question}}
+      """
+    }
   }
+
+  entry_agent = "faq_agent"
 }

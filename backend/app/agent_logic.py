@@ -1,21 +1,25 @@
-from neuro_san import AgenticNetwork
-from tools import FAQSearchTool
+# backend/app/agent_logic.py
+import subprocess
+import json
 
-class FAQBotManager:
-    def __init__(self, hocon_path: str):
-        # Register the custom CodedTool before loading the network
-        self.network = AgenticNetwork.from_hocon(
-            hocon_path,
-            custom_tools={"faq_search_tool": FAQSearchTool()}
-        )
+def get_bot_response(user_message: str) -> str:
+    process = subprocess.Popen(
+        [
+            "python",
+            "-m",
+            "neuro_san.client.agent_cli",
+            "--agent",
+            "faq_agent"
+        ],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
 
-    async def get_response(self, user_message: str, context: list = None):
-        # execute handles the agent-to-agent delegation defined in HOCON
-        result = await self.network.async_execute(
-            input_text=user_message,
-            context=context or []
-        )
-        return {
-            "reply": result.text,
-            "context": result.updated_context # Essential for multi-turn history
-        }
+    stdout, stderr = process.communicate(user_message + "\n")
+
+    if process.returncode != 0:
+        raise RuntimeError(stderr)
+
+    return stdout.strip()
