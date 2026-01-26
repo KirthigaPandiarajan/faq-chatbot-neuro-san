@@ -26,6 +26,19 @@ python -m pip install -r requirements.txt --only-binary :all:
 python -m uvicorn app.main:app --reload
 ```
 
+**Expected Output:**
+```
+============================================================
+✓ FAQ Chatbot API initialized
+✓ Mode: 🧪 DEVELOPMENT (mock agent)
+✓ Manifest file: ./registries/manifest.hocon
+✓ FAQ database: 9 items loaded
+============================================================
+
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process
+```
+
 **Backend will be available at:** `http://localhost:8000`  
 **API Documentation:** `http://localhost:8000/docs`
 
@@ -44,6 +57,16 @@ cd "c:\Users\Balaji M Vanan\Downloads\faq-chatbot-neuro-san\frontend"
 
 # Start the development server
 &"C:\Program Files\nodejs\npm.cmd" start
+```
+
+**Expected Output:**
+```
+webpack compiled with 1 warning
+
+Local:            http://localhost:3000
+On Your Network:  http://192.168.x.x:3000
+
+Compiled successfully!
 ```
 
 **Frontend will be available at:** `http://localhost:3000`
@@ -97,6 +120,50 @@ faq-chatbot-neuro-san/
 | GET | `/faq/search?keyword=...` | Search FAQ by keyword |
 | GET | `/sessions/{session_id}` | Get conversation history |
 | DELETE | `/sessions/{session_id}` | Clear conversation |
+
+### Example Responses
+
+**GET `/health`**
+```json
+{
+  "status": "healthy",
+  "service": "FAQ Chatbot",
+  "manifest_file": "./registries/manifest.hocon",
+  "faq_count": 9
+}
+```
+
+**POST `/chat`** (with request)
+```json
+{
+  "session_id": "session-123456",
+  "message": "How do I switch funds?"
+}
+```
+
+Expected Response:
+```json
+{
+  "session_id": "session-123456",
+  "reply": "Fund switch allows you to transfer current funds to another of your choice. You can do this via your Online Account (Transactions > Switch Funds) or by submitting a form at a branch. Requests before 3 PM on working days use that day's NAV.",
+  "status": "success"
+}
+```
+
+**GET `/faq/search?keyword=fund`**
+```json
+{
+  "keyword": "fund",
+  "count": 5,
+  "results": [
+    {
+      "question": "How do I switch funds in my policy?",
+      "answer": "Fund switch allows you to transfer current funds...",
+      "additional_info": "Charges may apply..."
+    }
+  ]
+}
+```
 
 ---
 
