@@ -1,7 +1,0 @@
-import json
-
-# Load FAQ data and pass to agent
-with open('backend/data/faq.json') as f:
-    faq_data = json.load(f)
-
-faq_data

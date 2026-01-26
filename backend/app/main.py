@@ -27,19 +27,34 @@ except ImportError:
     class MockAgentSession:
         """Mock agent session that simulates agent responses"""
         def streaming_chat(self, payload):
-            """Simulate agent response"""
+            """Simulate agent response using FAQ data"""
             user_msg = payload.get("user_message", {}).get("text", "")
             faq_context = payload.get("faq_context", "")
             
-            # Simple mock response based on input
-            if any(word in user_msg.lower() for word in ["switch", "fund"]):
-                response_text = "You can switch funds through your Online Account under Transactions > Switch Funds, or visit a branch."
-            elif any(word in user_msg.lower() for word in ["redirect", "premium"]):
-                response_text = "Use Premium Redirection to direct future premiums to a different fund. Processing takes 4 working days."
-            elif any(word in user_msg.lower() for word in ["automatic", "atp", "ats"]):
-                response_text = "Automatic Transfer Strategy (ATS) automatically transfers a fixed amount from debt fund to equity fund monthly."
+            # Search FAQ for matching answer
+            results = search_faq(user_msg)
+            
+            if results:
+                # Use the first matching FAQ answer
+                response_text = results[0].get("answer", "I found a match but couldn't extract the answer.")
             else:
-                response_text = f"Based on your question about '{user_msg}', I'd recommend checking our FAQ or contacting support for detailed assistance."
+                # Fallback to keyword-based response
+                if any(word in user_msg.lower() for word in ["switch", "fund", "transfer"]):
+                    response_text = "You can switch funds through your Online Account under Transactions > Switch Funds, or visit a branch."
+                elif any(word in user_msg.lower() for word in ["redirect", "premium", "future"]):
+                    response_text = "Use Premium Redirection to direct future premiums to a different fund. Processing takes 4 working days."
+                elif any(word in user_msg.lower() for word in ["automatic", "atp", "ats", "transfer"]):
+                    response_text = "Automatic Transfer Strategy (ATS) automatically transfers a fixed amount from debt fund to equity fund monthly."
+                elif any(word in user_msg.lower() for word in ["withdraw", "withdrawal", "partial"]):
+                    response_text = "Partial withdrawal allows you to withdraw a portion of your fund value. Refer to your policy documents for specific lock-in periods and limits."
+                elif any(word in user_msg.lower() for word in ["statement", "copy", "document"]):
+                    response_text = "Statements are emailed annually or you can download them from your Online Account under the Statements tab, or call +91 80693 85555."
+                elif any(word in user_msg.lower() for word in ["portfolio", "strategy"]):
+                    response_text = "Portfolio Investment Strategy automatically manages your funds based on your financial goals and risk appetite."
+                elif any(word in user_msg.lower() for word in ["top-up", "topup", "surplus"]):
+                    response_text = "Top-up allows you to invest surplus money into your existing policy if all due premiums are paid. Use the 'Top-up' tab in your Online Account."
+                else:
+                    response_text = f"Based on FAQ database, I couldn't find a specific answer for '{user_msg}'. Please visit our website or contact customer support at +91 80693 85555."
             
             return [{"response": {"text": response_text}, "done": True}]
 
@@ -163,20 +178,58 @@ async def chat_endpoint(request: Request):
     try:
         # Parse JSON request body
         req_data = await request.json()
+        print(f"\n📨 Chat Request: {req_data}")
         
         # Validate request using dataclass
         try:
             validated_data = ChatRequest.from_dict(req_data)
         except ValueError as e:
-            print(f"Validation error: {str(e)}")
-            raise HTTPException(status_code=400, detail=str(e))
+            error_msg = f"Validation error: {str(e)}"
+            print(f"❌ {error_msg}")
+            raise HTTPException(status_code=400, detail=error_msg)
         
         # Invoke the agent with DirectAgentSessionFactory
-        response = invoke_faq_agent(
-            agent_name="faq_agent",
-            user_text=validated_data.message,
-            session_id=validated_data.session_id
+        try:
+            response = invoke_faq_agent(
+                agent_name="faq_agent",
+                user_text=validated_data.message,
+                session_id=validated_data.session_id
+            )
+        except Exception as agent_err:
+            error_msg = f"Agent error: {str(agent_err)}"
+            print(f"❌ {error_msg}")
+            raise HTTPException(status_code=500, detail=error_msg)
+        
+        # Extract the response text
+        reply_text = response.get("response", {}).get("text", "I couldn't generate a response.")
+        
+        # Store in session history
+        session_id = validated_data.session_id
+        if session_id not in session_histories:
+            session_histories[session_id] = []
+        
+        session_histories[session_id].append({
+            "user": validated_data.message,
+            "bot": reply_text
+        })
+        
+        # Create and return response using dataclass
+        chat_response = ChatResponse(
+            session_id=session_id,
+            reply=reply_text,
+            status="success"
         )
+        print(f"✓ Response sent: {reply_text[:80]}...")
+        return chat_response.to_dict()
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_msg = f"Unexpected error: {str(e)}"
+        print(f"❌ {error_msg}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=error_msg)
         
         # Extract the response text
         reply_text = response.get("response", {}).get("text", "I couldn't generate a response.")
