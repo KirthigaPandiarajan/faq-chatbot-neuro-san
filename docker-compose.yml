@@ -20,6 +20,8 @@ services:
       - ./backend/registries:/app/registries
       # Mount the FAQ data
       - ./backend/data:/app/data
+      # Mount the config folder
+      - ./backend/config:/app/config
     working_dir: /app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     healthcheck:
