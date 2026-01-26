@@ -10,8 +10,38 @@ from pathlib import Path
 # Suppress coroutine warnings for cleaner output
 warnings.filterwarnings('ignore', category=RuntimeWarning)
 
-# Import neuro-san components
-from neuro_san.client.agent_session_factory import DirectAgentSessionFactory
+# Import neuro-san components (optional - for production)
+try:
+    from neuro_san.client.agent_session_factory import DirectAgentSessionFactory
+    NEURO_SAN_AVAILABLE = True
+except ImportError:
+    NEURO_SAN_AVAILABLE = False
+    print("⚠️  WARNING: neuro-san not installed. Using mock agent for development only.")
+    
+    # Mock DirectAgentSessionFactory for development/testing
+    class DirectAgentSessionFactory:
+        """Mock implementation for local development without neuro-san"""
+        def create_session(self, **kwargs):
+            return MockAgentSession()
+    
+    class MockAgentSession:
+        """Mock agent session that simulates agent responses"""
+        def streaming_chat(self, payload):
+            """Simulate agent response"""
+            user_msg = payload.get("user_message", {}).get("text", "")
+            faq_context = payload.get("faq_context", "")
+            
+            # Simple mock response based on input
+            if any(word in user_msg.lower() for word in ["switch", "fund"]):
+                response_text = "You can switch funds through your Online Account under Transactions > Switch Funds, or visit a branch."
+            elif any(word in user_msg.lower() for word in ["redirect", "premium"]):
+                response_text = "Use Premium Redirection to direct future premiums to a different fund. Processing takes 4 working days."
+            elif any(word in user_msg.lower() for word in ["automatic", "atp", "ats"]):
+                response_text = "Automatic Transfer Strategy (ATS) automatically transfers a fixed amount from debt fund to equity fund monthly."
+            else:
+                response_text = f"Based on your question about '{user_msg}', I'd recommend checking our FAQ or contacting support for detailed assistance."
+            
+            return [{"response": {"text": response_text}, "done": True}]
 
 # Import FAQ database from Python module
 from data.faq_data import get_faq_database, get_faq_count, search_faq
@@ -109,9 +139,14 @@ async def startup_event():
     # Load FAQ data
     FAQ_DATA = load_faq_data()
     
+    # Print startup info
+    mode = "🚀 PRODUCTION (neuro-san)" if NEURO_SAN_AVAILABLE else "🧪 DEVELOPMENT (mock agent)"
+    print(f"\n{'='*60}")
     print(f"✓ FAQ Chatbot API initialized")
+    print(f"✓ Mode: {mode}")
     print(f"✓ Manifest file: {os.environ.get('AGENT_MANIFEST_FILE')}")
     print(f"✓ FAQ database: {len(FAQ_DATA)} items loaded")
+    print(f"{'='*60}\n")
 
 
 @app.post("/chat")
