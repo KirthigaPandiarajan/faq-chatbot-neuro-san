@@ -1,13 +1,54 @@
 version: "3.8"
+
 services:
   backend:
-    build: ./backend
+    build: 
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: faq-chatbot-backend
     ports:
       - "8000:8000"
+    environment:
+      # LLM Configuration
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-your_key_here}
+      - OPENAI_MODEL=gpt-4o-mini
+      # Neuro-SAN Configuration
+      - AGENT_MANIFEST_FILE=/app/registries/manifest.hocon
+      - PYTHONUNBUFFERED=1
+    volumes:
+      # Mount the registries for agent configuration
+      - ./backend/registries:/app/registries
+      # Mount the FAQ data
+      - ./backend/data:/app/data
+    working_dir: /app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - faq-network
 
   frontend:
-    build: ./frontend
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: faq-chatbot-frontend
     ports:
       - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
     depends_on:
       - backend
+    networks:
+      - faq-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  faq-network:
+    driver: bridge
