@@ -1,0 +1,91 @@
+"""
+FAQ Database - Python Version
+Contains all FAQ questions and answers
+"""
+
+FAQ_DATABASE = [
+    {
+        "question": "How do I switch funds in my policy?",
+        "answer": "Fund switch allows you to transfer current funds to another of your choice. You can do this via your Online Account (Transactions > Switch Funds) or by submitting a form at a branch. Requests before 3 PM on working days use that day's NAV.",
+        "additional_info": "Charges may apply after a certain number of switches per policy terms."
+    },
+    {
+        "question": "How can I redirect future premiums to a different fund?",
+        "answer": "Use the Premium Redirection feature. Previous investments stay put, but future ones go to the new fund. Available via Online Account (Transactions > Premium Redirection) or branches. Processing takes 4 working days.",
+        "links": ["https://www.iciciprulife.com"]
+    },
+    {
+        "question": "What is the Automatic Transfer Strategy/Plan (ATS/ATP)?",
+        "answer": "ATS/ATP automatically transfers a fixed amount from a debt fund to an equity fund every month. This averages the NAV and minimizes the impact of short-term market volatility."
+    },
+    {
+        "question": "How do I enable the Automatic Transfer Strategy/Plan (ATS/ATP) in my policy?",
+        "answer": "Login to your Online Account, go to 'Transactions' > 'Automatic Transfer Plan/Strategy', select your policy, target fund, date, and amount. You can also visit a branch or write to customer support.",
+        "processing_time": "4 working days"
+    },
+    {
+        "question": "What is a Portfolio Investment Strategy?",
+        "answer": "It is a strategy where funds are automatically managed based on your financial goals and risk appetite. Different plans offer multiple strategies."
+    },
+    {
+        "question": "How do I change the Portfolio Investment Strategy in my policy?",
+        "answer": "Via Online Account: 'Transactions' > 'Change in Portfolio Strategy (CIPS)'. Via Branch: Fill out CIPS section on Page 2 of the transaction form.",
+        "processing_time": "4 working days"
+    },
+    {
+        "question": "How do I top-up my policy?",
+        "answer": "Top-up allows you to invest surplus money into your existing policy if all due premiums are paid. Use the 'Top-up' tab in your Online Account or submit a cheque at a branch.",
+        "cutoff_time": "3 PM for same-day NAV"
+    },
+    {
+        "question": "How do I get a copy of my policy/unit statement?",
+        "answer": "Statements are emailed annually in the month of purchase or after transactions. You can download it by logging in and navigating to the 'Statements' tab, or call customer support at +91 80693 85555.",
+        "channels": ["Online Account", "Call Center", "Branch", "Email"]
+    },
+    {
+        "question": "How do I request for Partial Withdrawal of funds?",
+        "answer": "Partial withdrawal allows you to withdraw a portion of your fund value. (Note: Refer to policy documents for specific lock-in periods and limits).",
+        "source": "ICICI Prulife Financial Transactions"
+    }
+]
+
+
+def get_faq_database():
+    """Get the FAQ database"""
+    return FAQ_DATABASE
+
+
+def get_faq_count():
+    """Get the number of FAQ items"""
+    return len(FAQ_DATABASE)
+
+
+def search_faq(keyword: str):
+    """Search FAQ by keyword"""
+    results = []
+    keyword_lower = keyword.lower()
+    
+    for item in FAQ_DATABASE:
+        question = item.get("question", "").lower()
+        answer = item.get("answer", "").lower()
+        
+        if keyword_lower in question or keyword_lower in answer:
+            results.append(item)
+    
+    return results
+
+
+def get_faq_by_index(index: int):
+    """Get FAQ item by index"""
+    if 0 <= index < len(FAQ_DATABASE):
+        return FAQ_DATABASE[index]
+    return None
+
+
+if __name__ == "__main__":
+    # Test the module
+    print(f"Total FAQ items: {get_faq_count()}")
+    print("\nFirst FAQ:")
+    print(get_faq_by_index(0))
+    print("\nSearch for 'funds':")
+    print(search_faq("funds"))

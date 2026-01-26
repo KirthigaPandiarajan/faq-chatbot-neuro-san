@@ -1,11 +1,14 @@
-FROM python:3.10-slim
+FROM python:3.10
 
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies including build tools
 RUN apt-get update && apt-get install -y \
     curl \
     git \
+    build-essential \
+    gcc \
+    g++ \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching

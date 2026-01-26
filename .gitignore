@@ -1,2 +1,38 @@
 frontend/node_modules/*
 out/*
+
+# IDE and editor files
+.idea/
+*.iml
+.vscode/
+
+# Temporary configuration files
+pip.ini
+
+# Replaced by faq_data.py (Python module)
+backend/data/faq.json
+
+# Windows-specific requirements (use requirements.txt instead)
+backend/requirements-windows.txt
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Environment variables
+.env
+.env.local
+
+# Docker
+docker-compose.override.yml
+
+# OS files
+.DS_Store
+Thumbs.db
